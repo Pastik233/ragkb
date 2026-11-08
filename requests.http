@@ -1,0 +1,56 @@
+﻿### 列出全部笔记（摘要：只有 200 字预览 + 字数，正文用 /api/notes/{id} 取）
+GET http://localhost:8080/api/notes
+
+### 按 id 查一条（带完整正文）
+GET http://localhost:8080/api/notes/1
+
+### 按关键词搜索标题
+GET http://localhost:8080/api/notes/search?keyword=转专业
+
+### 新建一条笔记（成功返回 201 + 摘要 JSON）
+POST http://localhost:8080/api/notes
+Content-Type: application/json
+
+{
+  "title": "第一条笔记",
+  "content": "用 POST 创建，id 由服务端生成"
+}
+
+### 语义检索：向量 + BM25 融合后重排，只返回片段，不调用对话模型
+GET http://localhost:8080/api/notes/semantic?q=转专业需要什么条件&k=5
+
+### 带引用的问答：检索片段后交给模型，答案里标注【1】【2】
+POST http://localhost:8080/api/ask
+Content-Type: application/json
+
+{
+  "q": "转专业需要什么条件",
+  "k": 5
+}
+
+### 上传文档（PDF / Word / Excel / PPT / Markdown 等，≤ 20 MB）
+POST http://localhost:8080/api/documents
+Content-Type: multipart/form-data; boundary=----RagkbBoundary
+
+------RagkbBoundary
+Content-Disposition: form-data; name="file"; filename="demo.md"
+Content-Type: text/markdown
+
+# 示例文档
+这里是一段会被切片的正文。
+------RagkbBoundary--
+
+### 查看某篇文档的切片列表
+GET http://localhost:8080/api/documents/1/chunks
+
+### 重建单篇文档的索引
+POST http://localhost:8080/api/documents/1/reindex
+
+### 批量补建所有未就绪的索引
+POST http://localhost:8080/api/documents/reindex-pending
+
+### 删除一条（成功返回 204，没有响应体）
+DELETE http://localhost:8080/api/notes/1
+
+### 删除不存在的 id（返回 404）
+DELETE http://localhost:8080/api/notes/999

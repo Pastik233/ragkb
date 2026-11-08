@@ -1,0 +1,47 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### WorkBuddy 本地协作记录 ###
+.workbuddy/
+
+### 前端依赖与临时产物（static 下的构建产物已入库，见 README）###
+frontend/node_modules/
+frontend/.node/
+frontend/dist/
+
+### 个人材料，不入库 ###
+简历-RAG知识库项目描述.md
+
+### 本地环境变量 ###
+.env

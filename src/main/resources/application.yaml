@@ -1,0 +1,51 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ragkb
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ragkb}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    hikari:
+      # pgvector 的 HNSW 检索宽度：默认 40 在候选多时召回不够，100 是精度/延迟的折中。
+      # 用连接初始化 SQL 下发，等价于每条连接执行一次 SET hnsw.ef_search = 100
+      connection-init-sql: SET hnsw.ef_search = ${app.rag.hnsw-ef-search:100}
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 25MB
+
+
+app:
+  rag:
+    max-distance: 0.75
+    vector-candidates: 20
+    keyword-candidates: 20
+    rrf-k: 60
+    rerank-candidates: 20
+    hnsw-ef-search: 100
+  rerank:
+    enabled: true
+    base-url: https://dashscope.aliyuncs.com/api/v1
+    model: qwen3-rerank
+  http:
+    # 没有读超时上游卡住会把 Tomcat 线程耗光，必须显式设
+    connect-timeout-seconds: 5
+    read-timeout-seconds: 60
+  embedding:
+    base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+    # 改这里要一起重建索引：note_chunks.embedding_model 会按这个值过滤
+    model: qwen3.7-text-embedding
+  chat:
+    model: qwen-flash
+  ingestion:
+    max-extracted-chars: 2000000
+    chunk-max-chars: 800
+    chunk-overlap-chars: 150
+    embedding-batch-size: 10
+
+dashscope:
+  # 默认空串：没配 Key 也能启动（上传/检索才会报错），不再是启动即崩
+  api-key: ${DASHSCOPE_API_KEY:}

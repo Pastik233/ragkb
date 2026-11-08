@@ -1,0 +1,38 @@
+name: build
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build and test
+        run: ./mvnw -B clean package
+
+      # 前端产物是提交进仓库的，这里重新构建一次并比对，防止改完前端忘记提交 static 目录。
+      # 用 git status 而不是 git diff：vite 换 hash 后新文件是 untracked，git diff 看不见。
+      - name: Verify committed frontend artifacts are up to date
+        run: |
+          ./mvnw -B -Dfrontend.build clean package
+          if [ -n "$(git status --porcelain -- src/main/resources/static)" ]; then
+            echo "::error::src/main/resources/static 与 frontend 源码不一致，请在本地跑 mvn -Dfrontend.build clean package 后提交该目录"
+            exit 1
+          fi
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: ragkb-jar
+          path: target/ragkb-*.jar

@@ -16,11 +16,11 @@
 
 **带引用的问答**：答案里每个【n】都对应下方一条原文片段，附文档名、片段序号与余弦距离。
 
-![问答页](docs/screenshot-ask.png)
+<img src="docs/screenshot-ask.png" width="880" alt="带引用的问答界面">
 
 **语义检索**：只检索不生成，直接给出最相关的片段，适合先定位原文再自己判断。
 
-![语义检索页](docs/screenshot-search.png)
+<img src="docs/screenshot-search.png" width="880" alt="语义检索界面">
 
 > 截图中为示例数据。
 

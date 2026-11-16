@@ -1,6 +1,7 @@
 package com.example.ragkb.note;
 
 import com.example.ragkb.common.LruCache;
+import com.example.ragkb.common.PgVector;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,9 +19,9 @@ public class SearchService {
     private static final Logger log = LoggerFactory.getLogger(SearchService.class);
 
     private final NoteChunkMapper chunks;
-    private final EmbeddingClient embeddings;
+    private final EmbeddingPort embeddings;
     private final Bm25Index bm25;
-    private final RerankClient reranker;
+    private final RerankPort reranker;
     private final int vectorCandidates;
     private final int keywordCandidates;
     private final int rrfK;
@@ -33,9 +34,9 @@ public class SearchService {
     private final LruCache<String, List<Integer>> rerankOrders = new LruCache<>(64);
 
     public SearchService(NoteChunkMapper chunks,
-                         EmbeddingClient embeddings,
+                         EmbeddingPort embeddings,
                          Bm25Index bm25,
-                         RerankClient reranker,
+                         RerankPort reranker,
                          @Value("${app.rag.vector-candidates:20}") int vectorCandidates,
                          @Value("${app.rag.keyword-candidates:20}") int keywordCandidates,
                          @Value("${app.rag.rrf-k:60}") int rrfK,
@@ -52,7 +53,7 @@ public class SearchService {
 
     public List<ChunkMatch> search(String query, int k, double maxDistance) {
         float[] vec = queryVector(query);
-        String vecParam = EmbeddingClient.toPgVector(vec);
+        String vecParam = PgVector.literal(vec);
 
         List<ChunkMatch> vectorHits = chunks
                 .findNearestChunks(vecParam, embeddings.model(), vectorCandidates)

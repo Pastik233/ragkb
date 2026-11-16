@@ -214,7 +214,7 @@ export default function App() {
     <div className="page">
       <header className="topbar">
         <div>
-          <h1>RAG 笔记库</h1>
+          <h1>企业文档 RAG 问答系统</h1>
           <p className="muted">Tika 解析 · 递归切片 · 混合检索 + 重排</p>
         </div>
         <span className="pill">{notes.length} 篇笔记</span>

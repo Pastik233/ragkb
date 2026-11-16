@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 @Component
-public class RerankClient {
+public class RerankClient implements RerankPort {
 
     private final RestClient http;
     private final String model;
@@ -27,11 +27,13 @@ public class RerankClient {
         this.enabled = enabled;
     }
 
+    @Override
     public boolean enabled() {
         return enabled;
     }
 
     /** 返回按相关度降序排列的原始下标 */
+    @Override
     public List<Integer> rerank(String query, List<String> documents) {
         RerankResponse resp = http.post()
                 .uri("/services/rerank/text-rerank/text-rerank")

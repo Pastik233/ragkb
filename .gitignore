@@ -45,3 +45,7 @@ frontend/dist/
 
 ### 本地环境变量 ###
 .env
+
+### 工作区临时资料与另一个独立项目，都不属于 ragkb，不入库 ###
+_tmp/
+docvault/

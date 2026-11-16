@@ -1,7 +1,7 @@
 package com.example.ragkb.document;
 
 import com.example.ragkb.note.Bm25Index;
-import com.example.ragkb.note.EmbeddingClient;
+import com.example.ragkb.note.EmbeddingPort;
 import com.example.ragkb.note.Note;
 import com.example.ragkb.note.NoteChunk;
 import com.example.ragkb.note.NoteChunkMapper;
@@ -29,7 +29,7 @@ class IndexingServiceTest {
 
     private NoteMapper notes;
     private NoteChunkMapper chunks;
-    private EmbeddingClient embeddings;
+    private EmbeddingPort embeddings;
     private Bm25Index bm25;
     private IndexingService service;
 
@@ -37,7 +37,7 @@ class IndexingServiceTest {
     void setUp() {
         notes = mock(NoteMapper.class);
         chunks = mock(NoteChunkMapper.class);
-        embeddings = mock(EmbeddingClient.class);
+        embeddings = mock(EmbeddingPort.class);
         bm25 = mock(Bm25Index.class);
         PlatformTransactionManager txManager = mock(PlatformTransactionManager.class);
         when(txManager.getTransaction(any())).thenReturn(mock(TransactionStatus.class));

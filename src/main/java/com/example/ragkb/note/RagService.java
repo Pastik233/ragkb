@@ -12,13 +12,13 @@ public class RagService {
     private static final int MAX_K = 20;
 
     private final NoteBook noteBook;
-    private final EmbeddingClient ai;
+    private final ChatPort chat;
     private final double maxDistance;
 
-    public RagService(NoteBook noteBook, EmbeddingClient ai,
+    public RagService(NoteBook noteBook, ChatPort chat,
                       @Value("${app.rag.max-distance:0.75}") double maxDistance) {
         this.noteBook = noteBook;
-        this.ai = ai;
+        this.chat = chat;
         this.maxDistance = maxDistance;
     }
 
@@ -47,7 +47,7 @@ public class RagService {
                 片段里没有答案就直接说"笔记里没有相关内容"，不要补充常识。
                 """.formatted(context, question);
 
-        return new AskResponse(ai.chat(prompt), toSources(hits));
+        return new AskResponse(chat.chat(prompt), toSources(hits));
     }
 
     private List<Source> toSources(List<ChunkMatch> hits) {

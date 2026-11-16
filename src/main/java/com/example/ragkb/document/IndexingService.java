@@ -1,8 +1,9 @@
 package com.example.ragkb.document;
 
+import com.example.ragkb.common.PgVector;
 import com.example.ragkb.note.Bm25Index;
 import com.example.ragkb.note.ChunkInsert;
-import com.example.ragkb.note.EmbeddingClient;
+import com.example.ragkb.note.EmbeddingPort;
 import com.example.ragkb.note.Note;
 import com.example.ragkb.note.NoteChunk;
 import com.example.ragkb.note.NoteChunkMapper;
@@ -32,7 +33,7 @@ public class IndexingService {
     private final NoteMapper notes;
     private final NoteChunkMapper chunks;
     private final TextChunker chunker;
-    private final EmbeddingClient embeddings;
+    private final EmbeddingPort embeddings;
     private final Bm25Index bm25;
     private final TransactionTemplate tx;
     private final int batchSize;
@@ -40,7 +41,7 @@ public class IndexingService {
     public IndexingService(NoteMapper notes,
                            NoteChunkMapper chunks,
                            TextChunker chunker,
-                           EmbeddingClient embeddings,
+                           EmbeddingPort embeddings,
                            Bm25Index bm25,
                            PlatformTransactionManager txManager,
                            @Value("${app.ingestion.embedding-batch-size:10}") int batchSize) {
@@ -74,7 +75,7 @@ public class IndexingService {
                 List<String> batch = pieces.subList(
                         from, Math.min(from + batchSize, pieces.size()));
                 for (float[] vec : embeddings.embedBatch(batch)) {
-                    vectors.add(EmbeddingClient.toPgVector(vec));
+                    vectors.add(PgVector.literal(vec));
                 }
             }
 

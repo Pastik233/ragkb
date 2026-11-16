@@ -17,17 +17,17 @@ import static org.mockito.Mockito.when;
 class SearchServiceTest {
 
     private NoteChunkMapper chunks;
-    private EmbeddingClient embeddings;
+    private EmbeddingPort embeddings;
     private Bm25Index bm25;
-    private RerankClient reranker;
+    private RerankPort reranker;
     private SearchService service;
 
     @BeforeEach
     void setUp() {
         chunks = mock(NoteChunkMapper.class);
-        embeddings = mock(EmbeddingClient.class);
+        embeddings = mock(EmbeddingPort.class);
         bm25 = mock(Bm25Index.class);
-        reranker = mock(RerankClient.class);
+        reranker = mock(RerankPort.class);
         service = new SearchService(chunks, embeddings, bm25, reranker, 20, 20, 60, 20);
         when(embeddings.embed(anyString())).thenReturn(new float[]{0.1f});
         when(embeddings.model()).thenReturn("test-model");

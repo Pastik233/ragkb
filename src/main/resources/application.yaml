@@ -16,6 +16,25 @@ spring:
     multipart:
       max-file-size: 20MB
       max-request-size: 25MB
+  ai:
+    openai:
+      # 百炼的 OpenAI 兼容端点。Spring AI 2.0 底层是官方 openai-java SDK，
+      # base-url 要包含 /v1，SDK 会自行拼 /chat/completions。
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      # 占位值保证没配 Key 时自动配置仍能装配（与 dashscope.api-key 的语义一致：调用时才报错）
+      api-key: ${DASHSCOPE_API_KEY:sk-not-configured}
+      chat:
+        model: ${app.chat.model:qwen-flash}
+        # 官方 SDK 默认没有读超时，上游卡住会耗光 Tomcat 线程
+        timeout: ${app.http.read-timeout-seconds:60}s
+      embedding:
+        # 单一数据源：写进 note_chunks.embedding_model 的名字必须等于实际调用的模型，
+        # 否则检索时会被 c.embedding_model = #{model} 过滤成空结果
+        model: ${app.embedding.model}
+        timeout: ${app.http.read-timeout-seconds:60}s
+    model:
+      chat: openai
+      embedding: openai
 
 mybatis:
   # SQL 全部放在 XML 里，接口只留签名
@@ -42,8 +61,8 @@ app:
     connect-timeout-seconds: 5
     read-timeout-seconds: 60
   embedding:
-    base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
-    # 改这里要一起重建索引：note_chunks.embedding_model 会按这个值过滤
+    # 由 spring.ai.openai.embedding.model 引用；改这里要一起重建索引，
+    # 且向量维度变化还要新增 Flyway 迁移改 vector(N) 并重建 HNSW 索引
     model: qwen3.7-text-embedding
   chat:
     model: qwen-flash

@@ -20,14 +20,14 @@ import static org.mockito.Mockito.when;
 /** 用 mock 替掉仓储与索引服务，纯单元测试，不需要数据库 */
 class NoteBookTest {
 
-    private NoteRepository notes;
+    private NoteMapper notes;
     private IndexingService indexing;
     private SearchService search;
     private NoteBook book;
 
     @BeforeEach
     void setUp() {
-        notes = mock(NoteRepository.class);
+        notes = mock(NoteMapper.class);
         indexing = mock(IndexingService.class);
         search = mock(SearchService.class);
         book = new NoteBook(notes, indexing, search);
@@ -35,7 +35,7 @@ class NoteBookTest {
 
     @Test
     void add_saves_then_reindexes_and_returns_fresh_status() {
-        when(notes.save(any(Note.class))).thenReturn(note(1L, "PENDING"));
+        when(notes.insert(any(Note.class))).thenReturn(1L);
         when(notes.findById(1L)).thenReturn(Optional.of(note(1L, "READY")));
 
         Note result = book.add("标题", "正文");
@@ -46,7 +46,7 @@ class NoteBookTest {
 
     @Test
     void add_survives_indexing_failure() {
-        when(notes.save(any(Note.class))).thenReturn(note(1L, "PENDING"));
+        when(notes.insert(any(Note.class))).thenReturn(1L);
         when(notes.findById(1L)).thenReturn(Optional.of(note(1L, "FAILED")));
         doThrow(new IllegalStateException("embedding 挂了")).when(indexing).reindex(1L);
 

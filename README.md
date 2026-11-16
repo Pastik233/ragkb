@@ -34,7 +34,7 @@
 
 ## 技术栈
 
-Java 21 · Spring Boot 4.1 · Spring Data JDBC · PostgreSQL 17 + pgvector · Flyway · Apache Tika 3.3 · React 19 + Vite 7 · 阿里云百炼（qwen3.7-text-embedding / qwen3-rerank / qwen-flash）
+Java 21 · Spring Boot 4.1 · MyBatis 3.5（XML 映射） · PostgreSQL 17 + pgvector · Flyway · Apache Tika 3.3 · React 19 + Vite 7 · 阿里云百炼（qwen3.7-text-embedding / qwen3-rerank / qwen-flash）
 
 ## 快速开始
 

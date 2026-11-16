@@ -15,12 +15,12 @@ import static org.mockito.Mockito.when;
 /** 增量维护的倒排索引：不需要数据库，验证「只重算受影响的片段」 */
 class Bm25IndexTest {
 
-    private NoteChunkRepository chunks;
+    private NoteChunkMapper chunks;
     private Bm25Index index;
 
     @BeforeEach
     void setUp() {
-        chunks = mock(NoteChunkRepository.class);
+        chunks = mock(NoteChunkMapper.class);
         index = new Bm25Index(chunks);
     }
 

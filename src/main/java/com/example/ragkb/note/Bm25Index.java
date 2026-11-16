@@ -36,7 +36,7 @@ public class Bm25Index {
     private static final Set<String> STOP_TERMS = Set.of(
             "什么", "怎么", "如何", "为何", "是否", "可以", "这个", "那个", "一下", "为什", "么是");
 
-    private final NoteChunkRepository chunks;
+    private final NoteChunkMapper chunks;
 
     /**
      * 读多写少：搜索拿读锁并发跑，增删片段拿写锁。
@@ -58,7 +58,7 @@ public class Bm25Index {
 
     private boolean loaded;
 
-    public Bm25Index(NoteChunkRepository chunks) {
+    public Bm25Index(NoteChunkMapper chunks) {
         this.chunks = chunks;
     }
 

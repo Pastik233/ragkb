@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.ragkb.note.NoteChunkMapper">
+
+    <resultMap id="chunkResult" type="com.example.ragkb.note.NoteChunk">
+        <constructor>
+            <idArg column="id" javaType="java.lang.Long"/>
+            <arg column="note_id" javaType="java.lang.Long"/>
+            <arg column="chunk_index" javaType="java.lang.Integer"/>
+            <arg column="content" javaType="java.lang.String"/>
+            <arg column="char_count" javaType="java.lang.Integer"/>
+            <arg column="embedding_model" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.LocalDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="chunkMatchResult" type="com.example.ragkb.note.ChunkMatch">
+        <constructor>
+            <arg column="chunk_id" javaType="java.lang.Long"/>
+            <arg column="note_id" javaType="java.lang.Long"/>
+            <arg column="title" javaType="java.lang.String"/>
+            <arg column="chunk_index" javaType="java.lang.Integer"/>
+            <arg column="content" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.LocalDateTime"/>
+            <arg column="distance" javaType="double"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="chunkColumns">
+        id, note_id, chunk_index, content, char_count, embedding_model, created_at
+    </sql>
+
+    <select id="findAll" resultMap="chunkResult">
+        SELECT <include refid="chunkColumns"/>
+        FROM note_chunks
+        ORDER BY id
+    </select>
+
+    <select id="findByNoteIdOrderByChunkIndex" resultMap="chunkResult">
+        SELECT <include refid="chunkColumns"/>
+        FROM note_chunks
+        WHERE note_id = #{noteId}
+        ORDER BY chunk_index
+    </select>
+
+    <select id="countByNoteId" resultType="long">
+        SELECT count(*) FROM note_chunks WHERE note_id = #{noteId}
+    </select>
+
+    <delete id="deleteByNoteId">
+        DELETE FROM note_chunks WHERE note_id = #{noteId}
+    </delete>
+
+    <!-- 单条 SQL 多组 VALUES：切片数上千时省掉同量级的网络往返 -->
+    <insert id="insertChunks">
+        INSERT INTO note_chunks
+            (note_id, chunk_index, content, char_count, embedding_model, embedding)
+        VALUES
+        <foreach collection="chunks" item="c" separator=",">
+            (#{c.noteId}, #{c.chunkIndex}, #{c.content}, #{c.charCount},
+             #{c.model}, CAST(#{c.embedding} AS vector))
+        </foreach>
+    </insert>
+
+    <!--
+      <=> 中的 < 会被 XML 解析器当成标签起点，整个语句必须放进 CDATA，
+      否则 Mapper 在启动阶段就直接解析失败。
+    -->
+    <select id="findNearestChunks" resultMap="chunkMatchResult">
+        <![CDATA[
+        SELECT c.id          AS chunk_id,
+               c.note_id     AS note_id,
+               n.title       AS title,
+               c.chunk_index AS chunk_index,
+               c.content     AS content,
+               n.created_at  AS created_at,
+               c.embedding <=> CAST(#{queryVec} AS vector) AS distance
+        FROM note_chunks c
+        JOIN notes n ON n.id = c.note_id
+        WHERE c.embedding IS NOT NULL
+          AND c.embedding_model = #{model}
+        ORDER BY c.embedding <=> CAST(#{queryVec} AS vector)
+        LIMIT #{k}
+        ]]>
+    </select>
+
+    <select id="findByIds" resultMap="chunkMatchResult">
+        SELECT c.id          AS chunk_id,
+               c.note_id     AS note_id,
+               n.title       AS title,
+               c.chunk_index AS chunk_index,
+               c.content     AS content,
+               n.created_at  AS created_at,
+               <![CDATA[c.embedding <=> CAST(#{queryVec} AS vector) AS distance]]>
+        FROM note_chunks c
+        JOIN notes n ON n.id = c.note_id
+        WHERE c.id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </select>
+
+</mapper>

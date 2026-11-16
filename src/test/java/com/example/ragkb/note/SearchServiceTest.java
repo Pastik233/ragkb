@@ -16,7 +16,7 @@ import static org.mockito.Mockito.when;
 /** 检索链路：距离阈值、RRF 融合顺序、重排失败回退 */
 class SearchServiceTest {
 
-    private NoteChunkRepository chunks;
+    private NoteChunkMapper chunks;
     private EmbeddingClient embeddings;
     private Bm25Index bm25;
     private RerankClient reranker;
@@ -24,7 +24,7 @@ class SearchServiceTest {
 
     @BeforeEach
     void setUp() {
-        chunks = mock(NoteChunkRepository.class);
+        chunks = mock(NoteChunkMapper.class);
         embeddings = mock(EmbeddingClient.class);
         bm25 = mock(Bm25Index.class);
         reranker = mock(RerankClient.class);

@@ -12,11 +12,11 @@ public class NoteBook {
 
     private static final Logger log = LoggerFactory.getLogger(NoteBook.class);
 
-    private final NoteRepository notes;
+    private final NoteMapper notes;
     private final IndexingService indexing;
     private final SearchService search;
 
-    public NoteBook(NoteRepository notes, IndexingService indexing, SearchService search) {
+    public NoteBook(NoteMapper notes, IndexingService indexing, SearchService search) {
         this.notes = notes;
         this.indexing = indexing;
         this.search = search;
@@ -24,13 +24,15 @@ public class NoteBook {
 
     /** 人工新增的笔记也必须切片，否则片段检索永远看不到它 */
     public Note add(String title, String content) {
-        Note note = notes.save(Note.of(title, content));
+        Note draft = Note.of(title, content);
+        Long id = notes.insert(draft);
         try {
-            indexing.reindex(note.id());
+            indexing.reindex(id);
         } catch (RuntimeException ex) {
-            log.warn("笔记已保存但切片失败 id={}", note.id(), ex);
+            log.warn("笔记已保存但切片失败 id={}", id, ex);
         }
-        return notes.findById(note.id()).orElse(note);
+        return notes.findById(id).orElseThrow(
+                () -> new IllegalStateException("笔记写入后读回失败：" + id));
     }
 
     public List<ChunkMatch> searchChunks(String query, int k, double maxDistance) {

@@ -2,7 +2,7 @@ package com.example.ragkb.document;
 
 import com.example.ragkb.document.DocumentParser.ParsedDocument;
 import com.example.ragkb.note.Note;
-import com.example.ragkb.note.NoteRepository;
+import com.example.ragkb.note.NoteMapper;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Objects;
@@ -35,10 +35,10 @@ public class DocumentService {
     );
 
     private final DocumentParser parser;
-    private final NoteRepository notes;
+    private final NoteMapper notes;
     private final IndexingService indexing;
 
-    public DocumentService(DocumentParser parser, NoteRepository notes,
+    public DocumentService(DocumentParser parser, NoteMapper notes,
                            IndexingService indexing) {
         this.parser = parser;
         this.notes = notes;
@@ -57,17 +57,18 @@ public class DocumentService {
             }
             String filename = safeFilename(file.getOriginalFilename());
             String title = titleOf(filename);
-            Note saved = notes.save(Note.imported(
+            Long noteId = notes.insert(Note.imported(
                     title, parsed.text(), filename, mimeType));
 
             try {
-                indexing.reindex(saved.id());
+                indexing.reindex(noteId);
             } catch (RuntimeException ex) {
                 // 原文已入库，索引失败不推翻上传结果；状态已由 IndexingService 标为 FAILED
-                log.warn("文档已入库但切片失败 noteId={}", saved.id(), ex);
+                log.warn("文档已入库但切片失败 noteId={}", noteId, ex);
             }
             // 重新查一次，把 READY / FAILED 的真实状态返回给调用方
-            return notes.findById(saved.id()).orElse(saved);
+            return notes.findById(noteId).orElseThrow(
+                    () -> new IllegalStateException("文档写入后读回失败：" + noteId));
 
         } catch (IOException | TikaException | SAXException ex) {
             throw new ResponseStatusException(

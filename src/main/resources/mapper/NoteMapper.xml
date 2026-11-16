@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.ragkb.note.NoteMapper">
+
+    <!-- Note 是 record：没有无参构造也没有 setter，只能按列序走 constructor 装配 -->
+    <resultMap id="noteResult" type="com.example.ragkb.note.Note">
+        <constructor>
+            <idArg column="id" javaType="java.lang.Long"/>
+            <arg column="title" javaType="java.lang.String"/>
+            <arg column="content" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.LocalDateTime"/>
+            <arg column="source_type" javaType="java.lang.String"/>
+            <arg column="original_filename" javaType="java.lang.String"/>
+            <arg column="mime_type" javaType="java.lang.String"/>
+            <arg column="index_status" javaType="java.lang.String"/>
+            <arg column="updated_at" javaType="java.time.LocalDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="noteColumns">
+        id, title, content, created_at, source_type,
+        original_filename, mime_type, index_status, updated_at
+    </sql>
+
+    <select id="findById" resultMap="noteResult">
+        SELECT <include refid="noteColumns"/>
+        FROM notes
+        WHERE id = #{id}
+    </select>
+
+    <select id="findAll" resultMap="noteResult">
+        SELECT <include refid="noteColumns"/>
+        FROM notes
+        ORDER BY id
+    </select>
+
+    <select id="existsById" resultType="java.lang.Boolean">
+        SELECT EXISTS (SELECT 1 FROM notes WHERE id = #{id})
+    </select>
+
+    <!-- 原来是 findByTitleContainingIgnoreCase 的方法名派生，这里换成 Postgres 的 ILIKE 更直白 -->
+    <select id="findByTitleContainingIgnoreCase" resultMap="noteResult">
+        SELECT <include refid="noteColumns"/>
+        FROM notes
+        WHERE title ILIKE '%' || #{keyword} || '%'
+        ORDER BY id
+    </select>
+
+    <!-- 注意不能写成 <>：小于号在 XML 里非法，这里用等价的 != -->
+    <select id="findIdsNotReady" resultType="java.lang.Long">
+        SELECT id
+        FROM notes
+        WHERE index_status != 'READY'
+        ORDER BY id
+    </select>
+
+    <!--
+      用 select 标签执行 INSERT ... RETURNING id：record 无法承载 useGeneratedKeys 的回填，
+      而 RETURNING 必须走 executeQuery 才拿得到结果集，写成 insert 标签会被当成更新计数丢掉。
+    -->
+    <select id="insert" resultType="java.lang.Long" flushCache="true" useCache="false">
+        INSERT INTO notes
+            (title, content, created_at, source_type, original_filename,
+             mime_type, index_status, updated_at)
+        VALUES
+            (#{title}, #{content}, #{createdAt}, #{sourceType}, #{originalFilename},
+             #{mimeType}, #{indexStatus}, #{updatedAt})
+        RETURNING id
+    </select>
+
+    <update id="updateIndexStatus">
+        UPDATE notes
+        SET index_status = #{status},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM notes WHERE id = #{id}
+    </delete>
+
+</mapper>

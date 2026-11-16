@@ -1,21 +1,23 @@
 package com.example.ragkb.note;
 
 import java.time.LocalDateTime;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
-@Table("notes")
+/**
+ * 笔记实体。
+ *
+ * <p>不可变 record，没有无参构造也没有 setter，所以不走 MyBatis 的自动映射：
+ * 列与字段的对应关系统一写在 NoteMapper.xml 的 resultMap 里，用 constructor 按列序装配。
+ */
 public record Note(
-        @Id Long id,
+        Long id,
         String title,
         String content,
-        @Column("created_at") LocalDateTime createdAt,
-        @Column("source_type") String sourceType,
-        @Column("original_filename") String originalFilename,
-        @Column("mime_type") String mimeType,
-        @Column("index_status") String indexStatus,
-        @Column("updated_at") LocalDateTime updatedAt) {
+        LocalDateTime createdAt,
+        String sourceType,
+        String originalFilename,
+        String mimeType,
+        String indexStatus,
+        LocalDateTime updatedAt) {
 
     public static Note of(String title, String content) {
         LocalDateTime now = LocalDateTime.now();

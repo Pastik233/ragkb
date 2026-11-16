@@ -1,11 +1,12 @@
 package com.example.ragkb.document;
 
 import com.example.ragkb.note.Bm25Index;
+import com.example.ragkb.note.ChunkInsert;
 import com.example.ragkb.note.EmbeddingClient;
 import com.example.ragkb.note.Note;
 import com.example.ragkb.note.NoteChunk;
-import com.example.ragkb.note.NoteChunkRepository;
-import com.example.ragkb.note.NoteRepository;
+import com.example.ragkb.note.NoteChunkMapper;
+import com.example.ragkb.note.NoteMapper;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -20,16 +21,24 @@ public class IndexingService {
 
     private static final Logger log = LoggerFactory.getLogger(IndexingService.class);
 
-    private final NoteRepository notes;
-    private final NoteChunkRepository chunks;
+    /**
+     * 单条 INSERT 携带的切片上限。
+     *
+     * <p>批量插入既省往返，也要防参数爆掉：一条语句里的占位符数量有上限（Postgres 是 65535），
+     * 每片占 6 个，所以按 500 一批切，留足余量。
+     */
+    private static final int INSERT_BATCH = 500;
+
+    private final NoteMapper notes;
+    private final NoteChunkMapper chunks;
     private final TextChunker chunker;
     private final EmbeddingClient embeddings;
     private final Bm25Index bm25;
     private final TransactionTemplate tx;
     private final int batchSize;
 
-    public IndexingService(NoteRepository notes,
-                           NoteChunkRepository chunks,
+    public IndexingService(NoteMapper notes,
+                           NoteChunkMapper chunks,
                            TextChunker chunker,
                            EmbeddingClient embeddings,
                            Bm25Index bm25,
@@ -70,12 +79,20 @@ public class IndexingService {
             }
 
             // 向量已经在内存里算好，事务只做数据库写入，不跨网络调用
+            String model = embeddings.model();
             List<NoteChunk> saved = new ArrayList<>(pieces.size());
             tx.executeWithoutResult(status -> {
                 chunks.deleteByNoteId(noteId);
+                // 攒够一批发一条 INSERT，切片上千时不再是一片一次往返
+                // 每批都换一个新 List：复用并 clear 会让延迟消费参数的执行器（如 BATCH）读到空集合
+                List<ChunkInsert> batch = new ArrayList<>(INSERT_BATCH);
                 for (int i = 0; i < pieces.size(); i++) {
-                    chunks.insertChunk(noteId, i, pieces.get(i),
-                            pieces.get(i).length(), embeddings.model(), vectors.get(i));
+                    batch.add(new ChunkInsert(noteId, i, pieces.get(i),
+                            pieces.get(i).length(), model, vectors.get(i)));
+                    if (batch.size() == INSERT_BATCH || i == pieces.size() - 1) {
+                        chunks.insertChunks(batch);
+                        batch = new ArrayList<>(INSERT_BATCH);
+                    }
                 }
                 notes.updateIndexStatus(noteId, "READY");
                 // 回读一次拿到自增 id：BM25 内存索引要靠 chunkId 定位片段

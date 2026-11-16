@@ -1,7 +1,7 @@
 package com.example.ragkb.document;
 
 import com.example.ragkb.note.Note;
-import com.example.ragkb.note.NoteChunkRepository;
+import com.example.ragkb.note.NoteChunkMapper;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,11 +21,11 @@ public class DocumentController {
 
     private final DocumentService documents;
     private final IndexingService indexing;
-    private final NoteChunkRepository chunks;
+    private final NoteChunkMapper chunks;
 
     public DocumentController(DocumentService documents,
                               IndexingService indexing,
-                              NoteChunkRepository chunks) {
+                              NoteChunkMapper chunks) {
         this.documents = documents;
         this.indexing = indexing;
         this.chunks = chunks;

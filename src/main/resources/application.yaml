@@ -17,6 +17,13 @@ spring:
       max-file-size: 20MB
       max-request-size: 25MB
 
+mybatis:
+  # SQL 全部放在 XML 里，接口只留签名
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    # 显式 resultMap 用不到这项，留给将来用 resultType 的简单查询兜底
+    map-underscore-to-camel-case: true
+
 
 app:
   rag:

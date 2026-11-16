@@ -1,16 +1,18 @@
 package com.example.ragkb.note;
 
 import java.time.LocalDateTime;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
-@Table("note_chunks")
+/**
+ * 笔记切片。
+ *
+ * <p>同样是不可变 record，映射写在 NoteChunkMapper.xml 的 resultMap 里。
+ * 这里刻意不含 embedding 列：向量只在检索 SQL 里参与排序，不需要读回内存。
+ */
 public record NoteChunk(
-        @Id Long id,
-        @Column("note_id") Long noteId,
-        @Column("chunk_index") int chunkIndex,
+        Long id,
+        Long noteId,
+        int chunkIndex,
         String content,
-        @Column("char_count") int charCount,
-        @Column("embedding_model") String embeddingModel,
-        @Column("created_at") LocalDateTime createdAt) {}
+        int charCount,
+        String embeddingModel,
+        LocalDateTime createdAt) {}

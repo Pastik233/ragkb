@@ -17,7 +17,7 @@ public class SearchService {
 
     private static final Logger log = LoggerFactory.getLogger(SearchService.class);
 
-    private final NoteChunkRepository chunks;
+    private final NoteChunkMapper chunks;
     private final EmbeddingClient embeddings;
     private final Bm25Index bm25;
     private final RerankClient reranker;
@@ -32,7 +32,7 @@ public class SearchService {
     /** 重排结果缓存：键是「问题 + 候选片段 id」，片段一旦重切片 id 就变了，天然失效 */
     private final LruCache<String, List<Integer>> rerankOrders = new LruCache<>(64);
 
-    public SearchService(NoteChunkRepository chunks,
+    public SearchService(NoteChunkMapper chunks,
                          EmbeddingClient embeddings,
                          Bm25Index bm25,
                          RerankClient reranker,
